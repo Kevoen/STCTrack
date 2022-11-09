@@ -1,0 +1,65 @@
+test:
+  track:
+    exp_name: &TEST_NAME "otb2015"
+    exp_save: &TEST_SAVE "logs/stctrack-otb-fulldata-test-dist"
+    model:
+      backbone_m:
+        name: "Inception3_M"
+        Inception3_M:
+          crop_pad: 4
+          pruned: True
+      backbone_q:
+        name: "Inception3_Q"
+        Inception3_Q:
+          crop_pad: 4
+          pruned: True
+      neck:
+        name: "AdjustLayer"
+        AdjustLayer:
+          in_channels: 768
+          out_channels: &OUT_CHANNELS 512
+      rnn:
+        name: "convlstm"
+        convlstm:
+          input_channels: 512
+          layers_per_block: (2, 3, 3, 2)
+          hidden_channels: (128, 64, 64, 128)
+          skip_stride: 2
+          kernel_size: 3
+          bias: True
+          pretrain_model_path: ""
+      losses:
+        names: []
+      task_head:
+        name: "STCHead"
+        STCHead:
+          total_stride: &TEST_TOTAL_STRIDE 8
+          score_size: &TEST_SCORE_SIZE 25
+          q_size: &TEST_Q_SIZE 289
+          in_channels: *OUT_CHANNELS
+      task_model:
+        name: "STCTrack"
+        STCTrack:
+          pretrain_model_path: ""
+    pipeline:
+      name: "STCTrackTracker"
+      STCTrackTracker:
+        test_lr: 0.5501132208837838 #0.95
+        window_influence: 0.20534968836733386  #0.21
+        penalty_k: 0.07592315864890313 # 0.04
+        total_stride: *TEST_TOTAL_STRIDE
+        score_size: *TEST_SCORE_SIZE
+        q_size: *TEST_Q_SIZE
+        m_size: *TEST_Q_SIZE
+        gpu_memory_threshold: 1000
+        search_area_factor: 4.0
+#        visualization: True
+    tester:
+      names: ["OTBTester",]
+      GOT10kTester:
+        exp_name: *TEST_NAME
+        exp_save: *TEST_SAVE
+        data_root: "data/dir/OTB2015"
+        subsets: ["otb2015"]
+        device_num: 2
+#        verbose: true
